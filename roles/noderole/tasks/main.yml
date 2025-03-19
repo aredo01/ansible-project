@@ -1,0 +1,47 @@
+- name: copy files to the nodejs node
+  ansible.builtin.copy:
+    src: nodejs/
+    dest: "{{ container_path }}"
+
+- name: print the container info
+  ansible.builtin.debug:
+    var: container_path
+
+# Remove the container if it exists
+- name: remove cw_nodejs container
+  community.docker.docker_container:
+    name: cw_nodejs
+    state: absent
+    force_kill: true
+
+# Remove the image if it exists
+- name: remove clarusway/nodejs image
+  community.docker.docker_image:
+    name: "{{ image_name }}" 
+    state: absent
+
+- name: build container image
+  community.docker.docker_image:
+    name: "{{ image_name }}"
+    build:
+      path: "{{ container_path }}"
+    source: build
+    state: present
+  register: image_info
+
+- name: print the image info
+  ansible.builtin.debug:
+    var: image_info
+
+- name: Launch nodejs docker container
+  community.docker.docker_container:
+    name: "{{ container_name }}"
+    image: "{{ image_name }}"
+    state: started
+    ports: 
+    - "5000:5000"
+  register: container_info
+
+- name: print the container info
+  ansible.builtin.debug:
+    var: container_info

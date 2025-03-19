@@ -1,0 +1,3 @@
+container_path: /home/ec2-user/react
+container_name: cw_react
+image_name: clarusway/react

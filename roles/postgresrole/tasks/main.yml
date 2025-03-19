@@ -1,0 +1,57 @@
+- name: copy files to the postgresql node
+  ansible.builtin.copy:
+    src: postgres/ # forward slash signifying the copy of the whole folder
+    dest: "{{ container_path }}"
+
+- name: remove cw_postgre container
+  community.docker.docker_container:
+    name: "{{ container_name }}"
+    state: absent
+    force_kill: true
+
+- name: print the container info
+  ansible.builtin.debug:
+    var: container_name
+
+- name: remove clarusway/postgre image
+  community.docker.docker_image:
+    name: "{{ image_name }}"
+    state: absent
+
+- name: print the container info
+  ansible.builtin.debug:
+    var: image_name
+
+# https://docs.ansible.com/ansible/latest/collections/community/docker/docker_image_module.html
+- name: build container image
+  community.docker.docker_image:
+    name: "{{ image_name }}"
+    build:
+      path: "{{ container_path }}"
+    source: build
+    state: present
+  register: image_info
+
+    # docker build -t "{{ image_name }}" ./home/ec2-user/postgresql
+
+- name: print the image_info
+  ansible.builtin.debug:
+    var: image_info
+
+# https://docs.ansible.com/ansible/latest/collections/community/docker/docker_container_module.html
+- name: run docker postgresql container
+  community.docker.docker_container:
+    name: "{{ container_name }}"
+    image: "{{ image_name }}"
+    state: started
+    ports:
+      - "5432:5432"
+    env:
+      POSTGRES_PASSWORD: "{{ password }}"
+    volumes:
+      - /db-data:/var/lib/postgresql/data
+  register: container_info
+
+- name: print the container info
+  ansible.builtin.debug:
+    var: container_info

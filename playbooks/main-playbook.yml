@@ -1,0 +1,20 @@
+- name: run postgres
+  hosts: _ansible_postgresql
+  become: true
+  vars_files:
+    - secret.yml
+  tasks:
+    - ansible.builtin.include_tasks: ./tasks/postgres-tasks.yml
+
+
+- name: run node
+  hosts: _ansible_nodejs
+  become: true
+  tasks:
+    - ansible.builtin.include_tasks: ./tasks/node-tasks.yml
+
+- name: run react
+  hosts: _ansible_react
+  become: true
+  tasks:
+    - ansible.builtin.include_tasks: ./tasks/react-tasks.yml
